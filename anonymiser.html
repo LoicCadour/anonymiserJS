@@ -7,7 +7,7 @@
 <body>
 
 <input type="file" id="dicomfile" name="files[]" multiple />
-<input type="text" id="patientName" placeholder="Patient Name" />
+<input type="text" id="PatientName" placeholder="Patient Name" />
 <input type="date" id="DoB" placeholder="2012-12-25" />
 
 <canvas id="canvas" style="width:512px;height:512px;display:none;"></canvas>
@@ -61,7 +61,8 @@
 				//return;
 			//} else {
 				//parse and process the Dicom file.
-				fr.onload = function(e) {
+				fr.onload = function(e) 
+				{
 					console.debug("Loaded the dicom file");
 					var dicomArray = new Uint8Array(e.target.result);
 					//parse the Dicom file
@@ -70,9 +71,8 @@
 					
 					//get width and height of the Dicom image.
 					var width = dataSet.uint16('x00280011'), height = dataSet.uint16('x00280010');
-					console.log(dataSet.string('x00100010'));
-					console.log(dataSet.string('x00100030'));
-					console.log(dataSet.string('x00100010'));
+					//console.log(dataSet.string('x00100010')); //Get Patient Name
+
 					
 					function anonymizetag(tag, text)
 					{
@@ -93,10 +93,9 @@
             			}
 					}
 					
-					anonymizetag("x00100010", document.getElementById('patientName').value);
+					anonymizetag("x00100010", document.getElementById('PatientName').value);
 					anonymizetag("x00100030", document.getElementById('DoB').value);
-					console.log(dataSet.string('x00100010'));
-					var studyID = dataSet.string('x00200010');
+
 					//Get the pixel data element from the dataset.
 					var pixelDataElement = dataSet.elements.x7fe00010;
 					//Now get the pixel data from the dicom file.
@@ -121,8 +120,6 @@
 					canvas.style.display = 'block';
 					
 					//SAVING FILE
-
-
 					var blob = new Blob([dicomArray], {type: "application/octet-stream"});
 					var fileName = "bloupi.dcm";
 					saveAs(blob, fileName);

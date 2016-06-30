@@ -1,0 +1,137 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+</head>
+<body>
+
+<input type="file" id="dicomfile" name="files[]" multiple />
+<input type="text" id="patientName" placeholder="Patient Name" />
+<input type="date" id="DoB" placeholder="2012-12-25" />
+
+<canvas id="canvas" style="width:512px;height:512px;display:none;"></canvas>
+              <div class="row">
+                <div class="col-xs-9">
+                  <h4><span class="label label-default">JavaScript</span>&nbsp;<span class="label label-default">Html5</span></h4><h4>
+                  <small style="font-family:courier,'new courier';" class="text-muted">20th March 2016</small>
+                  </h4></div>
+                <div class="col-xs-3"></div>
+              </div>
+              <br><br>
+            </div>
+          </div>
+          <hr>
+        </div>
+      </div>
+                                                                                       
+	                                                
+                                                      
+   	</div><!--/col-12-->
+  </div>
+</div>
+                                                
+                                                                                
+<hr>
+
+<output id="list"></output>
+
+
+<script type="text/javascript"
+               src="https://raw.githubusercontent.com/chafey/dicomParser/master/dist/dicomParser.min.js"></script>
+<script src="FileSaver.min.js"></script>
+
+	<script type="text/javascript">
+
+	
+	//create a canvas reference
+	var canvas = document.getElementById('canvas');
+	//add a handler for reading files from computer
+	var dicomFile = document.getElementById('dicomfile');
+	dicomFile.onchange = function (evt) {
+		var tgt = evt.target || window.event.srcElement;
+		var files = tgt.files;
+		// FileReader support
+		if (FileReader && files && files.length) {
+			var fr = new FileReader();
+			var extension = files[0].name.split('.').pop().toLowerCase();
+			//if extension is not dcm ,then stop processing further and exit.
+			//if(extension !== 'dcm') {
+				//alert('please choose a Dicom file');
+				//return;
+			//} else {
+				//parse and process the Dicom file.
+				fr.onload = function(e) {
+					console.debug("Loaded the dicom file");
+					var dicomArray = new Uint8Array(e.target.result);
+					//parse the Dicom file
+					var dataSet = dicomParser.parseDicom(dicomArray);
+					
+					
+					//get width and height of the Dicom image.
+					var width = dataSet.uint16('x00280011'), height = dataSet.uint16('x00280010');
+					console.log(dataSet.string('x00100010'));
+					console.log(dataSet.string('x00100030'));
+					console.log(dataSet.string('x00100010'));
+					
+					function anonymizetag(tag, text)
+					{
+						console.log("text length");
+						console.log(text.length);
+						console.log("element length");
+    					var element = dataSet.elements[tag];  
+    					console.log(element.length);  					    					
+    					if(element){
+//!!! size limited to initial size
+    						var index = 0;
+	        				for (var i = element.dataOffset; i <= element.dataOffset + element.length -1; i++) {
+            					dicomArray[i] = text.charCodeAt(index);//toc[index];
+            					console.log(text.charCodeAt(index));
+            					console.log(text[index]);
+            					index++;
+            				}
+            			}
+					}
+					
+					anonymizetag("x00100010", document.getElementById('patientName').value);
+					anonymizetag("x00100030", document.getElementById('DoB').value);
+					console.log(dataSet.string('x00100010'));
+					var studyID = dataSet.string('x00200010');
+					//Get the pixel data element from the dataset.
+					var pixelDataElement = dataSet.elements.x7fe00010;
+					//Now get the pixel data from the dicom file.
+					var pixelData = new Uint8Array(dataSet.byteArray.buffer, pixelDataElement.dataOffset, pixelDataElement.length);
+					//now we have got width, height and pixel data which is all it takes to render a image to the canvas.
+					canvas.width = width;
+					canvas.height = height;
+					//get context
+					var context = canvas.getContext('2d');
+					//get image data to update
+					var imageData = context.getImageData(0, 0, width, height);
+					var data = imageData.data;
+					//update the alpha 
+					for (var i = 3, k = 0; i < data.byteLength; i=i+4, k=k+2) {
+						//convert 16-bit to 8-bit ,because we cannot render a 16-bit value to the canvas.
+						var result = ((pixelData[k + 1] & 0xFF) << 8) | (pixelData[k] & 0xFF); 
+						result = (result & 0xFFFF) >> 8;
+						data[i] = 255-result;
+					}
+					context.putImageData(imageData, 0, 0);
+					//show the canvas
+					canvas.style.display = 'block';
+					
+					//SAVING FILE
+
+
+					var blob = new Blob([dicomArray], {type: "application/octet-stream"});
+					var fileName = "bloupi.dcm";
+					saveAs(blob, fileName);
+				}
+				fr.readAsArrayBuffer(this.files[0]);
+			//}
+		}
+	}
+	</script>
+</body>
+</html>
+

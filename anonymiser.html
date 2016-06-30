@@ -1,37 +1,28 @@
 <!DOCTYPE HTML>
 <html lang="en">
 <head>
+	<title>MUSIC Anonymiser</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
 </head>
 <body>
 
-<input type="file" id="dicomfile" name="files[]" multiple />
-<input type="text" id="PatientName" placeholder="Patient Name" />
-<input type="date" id="DoB" placeholder="2012-12-25" />
-
-
               <div class="row">
                 <div class="col-xs-9">
-                  <h4><span class="label label-default">JavaScript</span>&nbsp;<span class="label label-default">Html5</span></h4><h4>
-                  <small style="font-family:courier,'new courier';" class="text-muted">20th March 2016</small>
-                  </h4></div>
+                  <h4><span class="label label-default">MUSIC</span>&nbsp;<span class="label label-default">Anonymiser</span></h4>
+                </div>
+
+<input type="text" id="PatientName" placeholder="Patient Name" />
+<input type="date" id="DoB" placeholder="2012-12-25" />
                 <div class="col-xs-3"></div>
+                <br>
+<input type="file" id="dicomfile" name="files[]" multiple />
               </div>
               <br><br>
             </div>
           </div>
           <hr>
         </div>
-      </div>
-                                                                                       
-	                                                
-                                                      
-   	</div><!--/col-12-->
-  </div>
-</div>
-                                                
-                                                                                
+      </div>                                          
 <hr>
 
 <output id="list"></output>
@@ -39,6 +30,7 @@
 
 <script type="text/javascript"
                src="https://raw.githubusercontent.com/chafey/dicomParser/master/dist/dicomParser.min.js"></script>
+               
 <script src="FileSaver.min.js"></script>
 
 	<script type="text/javascript">

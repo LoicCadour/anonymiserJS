@@ -62,7 +62,7 @@
                         fr.onload = function(e)
                         {
                             console.debug("Loaded the dicom file");
-                            var encryptedPHI= ["PHI"]; //to initalize the array, TO IMPROVE
+                            var encryptedPHI= [];
                             var dicomArray = new Uint8Array(e.target.result);
                             for (var i = 0; i < confidential_tags.length; i++)
                             {
@@ -95,7 +95,6 @@
               var dataSet = dicomParser.parseDicom(dicomArray);
               var element = dataSet.elements[tag];
               var tag_string = dataSet.string(tag);
-              // document.getElementById("crypted_text").innerHTML = crypted;
 
               if(tag_string != undefined ) //non-empty field
               {
@@ -128,7 +127,6 @@
                 // Loop through the FileList and render image files as thumbnails.
                 for (var i = 0, f; f = files[i]; i++)
                 {
-
                     // FileReader support
                     if (FileReader && files && files.length)
                     {

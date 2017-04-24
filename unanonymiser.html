@@ -1,0 +1,136 @@
+<!DOCTYPE HTML>
+<html lang="en">
+    <head>
+        <title>MUSIC Unanonymiser</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+    </head>
+    <body>
+
+        <div class="row">
+            <div class="col-xs-9">
+                <h4><span class="label label-default">MUSIC</span>&nbsp;<span class="label label-default">Unanonymiser</span></h4>
+            </div>
+            <input type="text" id="Password" placeholder="Password" />
+            <br>
+
+            <input type="button" value="Decrypt File" id="decryptFile" onclick="unanonymizeData()"/>
+        </div>
+        <br><br>
+        <hr>
+        <p id = "crypted_text"></p>
+        <hr>
+        <p id = "original_Name"></p>
+        <hr>
+        <p id = "original_ID"></p>
+        <hr>
+        <p id = "original_DoB"></p>
+        <hr>
+        <input type="file" id="vtkFile" name="files[]" multiple onclick="unanonymizeVtk()"/>
+
+        <output id="list"></output>
+
+        <script src="sjcl.js"></script>
+        <script src="FileSaver.min.js"></script>
+
+        <script type="text/javascript">
+
+          function unanonymizeData()
+          {
+                var rawFile = new XMLHttpRequest();
+                rawFile.open("GET", "cryptedPHI.txt", false);
+                rawFile.onreadystatechange = function ()
+                {
+                    if(rawFile.readyState === 4)
+                    {
+                        if(rawFile.status === 200 || rawFile.status == 0)
+                        {
+                            var allText = rawFile.responseText;
+                            document.getElementById("crypted_text").innerHTML = allText;
+                            console.log(allText);
+
+                            var encryptedPHI = allText.split("},");
+
+                            var PHI = [];
+                            try
+                            {
+                              for (var i = 0; i < encryptedPHI.length; i++)
+                              {
+                                if(i != encryptedPHI.length-1)
+                                {
+                                  encryptedPHI[i] = encryptedPHI[i].concat("}");
+                                }
+                                PHI.push(sjcl.decrypt(document.getElementById('Password').value, encryptedPHI[i]));
+                              }
+                            }
+                            catch (e)
+                            {
+                              if (e.message == "ccm: tag doesn't match") {
+                                alert("Wrong password");
+                              }
+                              else
+                              {
+                                alert(e.message);
+                              }
+                              return;
+                            }
+
+                            document.getElementById("original_Name").innerHTML = PHI[0];
+                            document.getElementById("original_ID").innerHTML = PHI[1];
+                            document.getElementById("original_DoB").innerHTML = PHI[2];
+                        }
+                    }
+                }
+                rawFile.send(null);
+          }
+
+          function unanonymizeVtk()
+          {
+            var patientName = document.getElementById('original_Name').innerHTML;
+            var patientID = document.getElementById('original_ID').innerHTML;
+            var vtkHeader = "PatientData " + patientName + " " + patientID + "\n";
+
+              //add a handler for reading files from computer
+              var vtkFile = document.getElementById('vtkFile');
+              vtkFile.onchange = function (evt)
+              {
+                  var tgt = evt.target || window.event.srcElement;
+                  var files = tgt.files; // FileList object
+
+                  // Loop through the FileList and render image files as thumbnails.
+                  for (var i = 0, f; f = files[i]; i++)
+                  {
+                      // FileReader support
+                      if (FileReader && files && files.length)
+                      {
+                          var reader = new FileReader();
+                          var extension = files[0].name.split('.').pop().toLowerCase();
+                          //if extension is not vtk ,then stop processing further and exit.
+                          if(extension !== 'vtk')
+                          {
+                            alert('please choose a VTK file');
+                            return;
+                          }
+                          else {
+                            //parse and process the VTK file.
+                            reader.onload = function(e)
+                            {
+                                var file = e.target.result;
+                                //console.log(file);
+                                var regexp = new RegExp('ASCII');
+                                var myArray = regexp.exec(file);
+                                //console.log(myArray);
+                                var cartoFile = file.slice(0, myArray.index) + vtkHeader + file.slice(myArray.index);
+                                //console.log(cartoFile);
+                                var blob = new Blob([cartoFile], {type: 'text/plain'});
+                                var fileName = files[0].name;
+                                saveAs(blob, fileName);
+                            }
+                            reader.readAsText(this.files[i]);
+                          }
+                      }
+                  }
+              }
+            }
+        </script>
+    </body>
+</html>
